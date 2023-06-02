@@ -1,0 +1,50 @@
+<style>
+  .cell {
+    /* make the cells boxy and give them an outline */
+    border: solid black 1px;
+    width: 200px;
+    height: 200px;
+
+    /* make space between the boxes */
+    margin: 5px;
+
+    /* make the text appear in the exact center of the box */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+
+<div class="prompt">X's turn</div>
+<div class="tic-tac-toe-grid">
+  <div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+  <div>
+  <div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+  <div>
+  <div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+  <div>
+<div>
+
+<script>
+  // Query for all the cells and use the spread operator '...' to convert from
+  // HTMLElementCollection to an array.
+  const cells = [...document.getElementsByClassName('cell')];
+  
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      const cell = cells.shift();
+      console.log(cells.length, cell, row, col);
+    }
+  }
+
+</script>
+
