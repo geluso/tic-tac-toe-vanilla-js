@@ -25,13 +25,14 @@
 
 # How to Create Tic-Tac-Toe in Vanilla JS
 
-<pre style="text-align: center; font-size: 60pt; margin-top: -20px;">
+<pre style="text-align: center; font-size: 55pt; margin-top: -20px;">
 X |   | O
 ==== == ====
   | X | O
 ==== == ====
   |   | X
 </pre>
+by Steve Geluso
 
 ---
 
@@ -63,11 +64,95 @@ You should have a good grasp on these topics to get the most out of this lesson:
 
 # Overview
 
-### Tic-Tac-Toe JavaScript Engine
-### Detecting Wins
-### Testing the Tic-Tac-Toe Engine
-### Tic-Tac-Toe in HTML
+### HTML and CSS Tic-Tac-Toe Grid
 ### Clicking on Squares with JavaScript Event Listeners
+### Building a Tic-Tac-Toe JavaScript Engine
+### Connecting HTML to the JavaScript Engine
+### A Rant About Redundancy
+
+---
+
+# Tic-Tac-Toe in HTML
+
+Create a basic grid. `<divs>` work fine. Using `<table>` isn't necessary.
+
+It is nice to have a `<div>` to prompt messages like "X's turn" and "Game Over"
+
+JavaScript click listeners come next. Fancy CSS comes last.
+
+```html
+<div id="prompt">X's turn</div>
+
+<div id="tic-tac-toe-grid">
+  <div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  <div>
+  <div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  <div>
+  <div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  <div>
+<div>
+```
+
+---
+
+# Tic-Tac-Toe in CSS
+
+```css
+<style>
+  .cell {
+    /* make the cells boxy and give them an outline */
+    border: solid black 1px;
+    width: 200px;
+    height: 200px;
+
+    /* make space between the boxes */
+    margin: 5px;
+
+    /* make the text appear in the exact center of the box */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+```
+
+---
+
+# Clicking on Squares
+
+Query for all the cells and use the spread operator '...' to convert from
+HTMLElementCollection to an array to gain the `.shift()` function.
+
+Iterate through rows and columns and pluck cells off one at a time to
+attach the click listener.
+
+Update the `.textContent` property of the cell inside the click listener to
+make a change appear on the page.
+
+```js
+let cells = [...document.getElementsByClassName('cell')];
+
+for (let row = 0; row < 3; row++) {
+  for (let col = 0; col < 3; col++) {
+    const cell = cells.shift();
+    document.attachEventListener('click', () => clickCell(cell, row, col));
+  }
+}
+
+function clickCell(cell, row, col) {
+  console.log('clicked on', row, col);
+  cell.textContent = '(', row + ',' + col + ')';
+}
+```
 
 ---
 
@@ -87,15 +172,12 @@ A method `isValidMove(row, col)` prevents moves like X's playing on top of O's
 
 A method `detectGameOver()` determines when someone has won, or drawn
 
-A method `isThreeInARow(row0, col0, row1, col1, row2, col2)` is useful :)
-
 ```txt
 class TicTacToeGame {
   board; turn; isGameOver;
   makeMove(row, col) {}
   isValidMove(row, col) {}
   detectGameOver() {}
-  isThreeInARow(row0, col0, row1, col1, row2, col2) {}
 }
 ```
 
@@ -126,29 +208,32 @@ class TicTacToeGame {
 
 Create the `makeMove(row, col)` method
 
-It should check to see if the move is valid
-
-It should update the board
+It should update the 2D array representing the board
 
 It should flip the `turn` property between `X` and `O`
 
 ```js
 makeMove(row, col) {
-  if (!isValid(row, col) {
-    // don't do anything if this is not a valid move.
-    return;
-  }  
-
   this.board[row][col] = this.turn;
   if (this.turn === 'X') {
     this.turn = 'O';
   } else {
     this.turn = 'X';
   }
+}
+```
 
-  if (detectGameOver()) {
-    this.isGameOver = true;
-  }
+---
+
+# Wiring HTML to JavaScript Engine 
+
+Update the click listener to manipulate the call `game.makeMove()` and set
+`.textContent` on the cell to update the HTML on the page.
+
+```js
+function clickCell(game, cell, row, col) {
+  game.makeMove(row, col);
+  cell.textContent = game.board[row][col];
 }
 ```
 
@@ -156,11 +241,12 @@ makeMove(row, col) {
 
 # Tic-Tac-Toe Engine: Validating Moves
 
-The `makeMove(row, col)` function depends on this `isValid(row, col)` method.
+The `makeMove()` method allows us to make moves anywhere.
 
-Basically it checks to make sure there's not already a mark on that spot.
+Create a method `isValid()` that will return `true` if a given spot is empty to
+help us prevent an `O` overwriting an `X`.
 
-But it is also nice to do simple bounds checking.
+Add coordinate bounds checking as well.
 
 ```js
 isValid(row, col) {
@@ -185,17 +271,322 @@ isValid(row, col) {
 
 ---
 
-# Tic-Tac-Toe Engine: Checking for Wins
+# Tic-Tac-Toe Engine: Making Valid Moves
+
+Update the `makeMove()` method to call the new `isValid()` method.
+
+If the move is not valid simply return from the function without changing the
+state of the game.
+
+```js
+makeMove(row, col) {
+  if (!this.isValid(row, col)) {
+    return;
+  }
+
+  // previous move making code ...
+}
+```
+
+---
+
+# Checking Wins
 
 The engine needs to check to see if the game is over after every turn.
 
-You'll be tempted to write for loops to check for win lines across the board.
+Iterating over all the board and checking for wins is the meatiest algorithmic
+task of programming Tic-Tac-Toe.
 
-It is easier (and cleaner?) hard-code the win
-positions, and check them with a helper method
-`isThreeInARow(row0, col0, row1, col1, row2, col2)`
+Pause after this definition if you want to try solving the problem yourself.
 
-Compare the two approaches and see what you think.
+### Problem Definition
+
+* Write a function that returns `true` if there are any three `Xs` or `Os` in a
+  row in a 3x3 2D array.
+* Three in a row can occur:
+  * Horizontally across a whole row
+  * Vertically across a whole column
+  * Across a diagonal from top-left to bottom-right
+  * Across a diagonal from bottom-left to top-right.
+* The array may be entirely empty.
+* The array may be partially empty.
+* The array may be entirely full without any three in a row.
+* **Bonus:** return something identifying which row won.
+
+---
+
+# Checking Wins
+
+You may be tempted to use for loops to iterate over the grid and check for
+lines of three in a row.
+
+In my opinion, using a bunch of for loops gets nasty and it is a false optimization.
+
+I'll talk more about this later.
+
+First let me show a more straight-forward solution.
+
+---
+
+# Checking Wins Simple Solution
+
+Hard-code an array that defines the three (`row`,`col`) cells for each winning line.
+
+Write a helper method `checkThree(row0, col0, row1, col1, row2, col2)`
+
+Iterate through the hard-coded `winLines` and pass them into `checkThree()`.
+
+```js
+this.winLines = [
+  // winning rows
+  [0, 0, 0, 1, 0, 2],
+  [1, 0, 1, 1, 1, 2],
+  [2, 0, 2, 1, 2, 2],
+
+  // winning columns
+  [0, 0, 1, 0, 2, 0],
+  [0, 1, 1, 1, 2, 1],
+  [0, 2, 1, 2, 2, 2],
+
+  // top left to bottom right
+  [0, 0, 1, 1, 2, 2],
+
+  // bottom left to top right
+  [2, 0, 1, 1, 0, 2],
+]
+```
+
+---
+
+# Checking Wins Simple Solution
+`detectGameOver()` iterates over `winLines` passing each line into `checkThree()`.
+
+Save the winning line so we can display which line won on the page.
+
+```js
+detectGameOver() {
+  for (let line of this.winLines) {
+    // Use the spread syntax "...line" to expand the array into paramters
+    if (this.checkThree(...line)) {
+      this.winningLine = line;
+      this.isGameOver = true;
+    }
+  }
+}
+```
+
+```js
+function checkThree(row1, col1, row2, col2, row3, col3) {
+  const mark1 = this.board[row1][col1];
+  const mark2 = this.board[row2][col2];
+  const mark3 = this.board[row3][col3];
+
+  if (mark1 !== null && mark1 === mark2 && mark2 === mark3) {
+    return true;
+  }
+  return false;
+}
+```
+
+---
+
+# Handling Game Over
+
+Update `makeMove()` to call `detectGameOver()` after each legitimate move.
+
+```js
+makeMove(row, col) {
+  // isMoveValid ...
+  // manipulate game state ...
+
+  detectGameOver();
+}
+```
+
+Update `clickCell()` to check if the game is over and call a function to display winners.
+
+```js
+function clickCell(game, cell, row, col) {
+  // manipulate the game state.
+  game.makeMove(row, col);
+
+  // update the HTML
+  cell.textContent = game.board[row][col];
+
+  // check and display win
+  if (game.isOver) {
+    handleGameOver(game);
+  }
+}
+```
+
+---
+
+# Displaying Wins
+
+The click handler always checks to see if the game is over after making any more.
+
+Access the property storing the `winningLine`, find the cells corresponding to
+that line, add a CSS class to highlight the line.
+
+```js
+function handleGameOver(game) {
+  if (!game.isOver) return;
+
+  let [row1, col1, row2, col2, row3, col3] = game.winningLine;
+  let cells = document.getElementsByClassName('cell');
+
+  let cell1 = cells[row1 * 3 + col1];
+  let cell2 = cells[row2 * 3 + col2];
+  let cell3 = cells[row3 * 3 + col3];
+
+  cell1.classList.add('winning');
+  cell2.classList.add('winning');
+  cell3.classList.add('winning');
+
+  const prompt = document.getElementById('prompt');
+  const player = board[row1][col1];
+  prompt.textContent = player + ' won the game!';
+}
+```
+
+
+---
+
+# Accounting for Draws
+
+Game Over can occur if the board is full and no player got three in a row.
+
+We can check for a full board by looking at each cell to see if every cell is full.
+
+```js
+function isAllFilled() {
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (this.board[row][col] !== null) {
+        return false
+      }
+    }
+  }
+  return true;
+}
+```
+
+Or, more simply, we can add a new property `marks` and increment it with moves.
+We know the game is over if we reach nine marks.
+
+```js
+function isAllFilled() {
+  return this.marks === 9;
+}
+```
+
+---
+
+# Accounting for Draws
+
+Increment `marks` after each legitimate move.
+
+```js
+makeMove(row, col) {
+  // isMoveValid ...
+  // manipulate game state ...
+
+  this.marks++;
+
+  detectGameOver();
+}
+```
+
+
+Update `detectGameOver()` to set `isGameOver` to `true` if the board is full
+after checking each `winLine`.
+
+```js
+detectGameOver() {
+  for (let line of this.winLines) { /* ... */ }
+
+  if (isAllFilled()) {
+    this.isGameOver = true;
+  }
+}
+```
+
+---
+
+# Testing Tic-Tac-Toe
+
+Write some common sense tests:
+
+* Make sure marks can be made on the board.
+* Make sure marks can't be written over existing marks
+* Make sure the game detects horizontal, vertical and both diagonal wins
+* Make sure the game detects draw games when the whole board is full without a winner.
+
+---
+
+# Reset the Board
+
+Add a `New Game` button that resets the state of the game object and resets
+all the HTML to a starting state.
+
+We'll need to add the `reset()` method to the `TicTacToeGame` class.
+
+```html
+<button id="reset">New Game</button>
+```
+
+```js
+const resetButton = document.getElementById('reset');
+resetButton.addEventListener('click', reset);
+
+function reset() {
+  game.reset();
+
+  const prompt = document.getElementById('prompt');
+  prompt.textContent = "X's turn.";
+
+  let cells = document.getElementsByClassName('cell');
+  for (cell of cells) {
+    cell.textContent = '_';
+  }
+}
+```
+
+---
+
+# Reset the Game State
+
+Iterate through all the cells and change them back to `null`
+
+Reset the various `marks`, `isGameOver`, `winningLine` properties.
+
+```js
+reset() {
+  this.isGameOver = false;
+  this.winningLine = null;
+  this.turn = 'X';
+  this.marks = 0;
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      this.board[row][col] = null;
+    }
+  }
+}
+```
+
+---
+
+# That's All! (What Follows is Simply a Rant)
+
+<pre style="text-align: center; font-size: 55pt; margin-top: -20px;">
+X |   | O
+==== == ====
+  | X | O
+==== == ====
+  |   | X
+</pre>
 
 ---
 
@@ -395,278 +786,6 @@ checkWin(2, 0, -1, 1);
 ```
 
 ---
-# Checking Wins: A Simpler Approach
-Write a method that takes in coordinates of three spots to check.
-
-```js
-function checkThree(row1, col1, row2, col2, row3, col3) {
-  const mark1 = this.board[row1][col1];
-  const mark2 = this.board[row2][col2];
-  const mark3 = this.board[row3][col3];
-
-  if (mark1 !== null & mark1 === mark2 && mark2 === mark3) {
-    return true;
-  }
-  return false;
-}
-```
-
----
-# Checking Wins: A Simpler Approach
-
-Hard code the win lines as `[row1, col1, row2, col2, row3, col3]`.
-
-Hard coding the win lines looks like bad programming but I think it is OK at
-this scale.
-
-```js
-this.winLines = [
-  // rows
-  [0, 0, 0, 1, 0, 2],
-  [1, 0, 1, 1, 1, 2],
-  [2, 0, 2, 1, 2, 2],
-
-  // cols
-  [0, 0, 1, 0, 2, 0],
-  [0, 1, 1, 1, 2, 1],
-  [0, 2, 1, 2, 2, 2],
-
-  // top left to bottom right
-  [0, 0, 1, 1, 2, 2],
-
-  // bottom left to top right
-  [2, 0, 1, 1, 0, 2],
-]
-```
-
----
-# Checking Wins: A Simpler Approach
-
-Use the `checkThree` function to check each win line.
-
-Save the winning line so we can display which line won on the page.
-
-```js
-for (let line of this.winLines) {
-  if (this.checkThree(...line)) {
-    this.winningLine = line;
-    this.isGameOver = true;
-  }
-}
-```
-
----
-# Checking Wins: Accounting for Draws
-
-Another way games can end is if the board is full and no one got three in a row.
-
-We can check for this condition by looking at each cell and see if every cell is full.
-
-```js
-function isAllFilled() {
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-      if (this.board[row][col] !== null) {
-        return false
-      }
-    }
-  }
-  return true;
-}
-```
-
-Or, more simply, we can add a new property `marks` and increment it with moves.
-We know the game is over if we reach nine marks.
-
-```js
-function isAllFilled() {
-  return this.marks === 9;
-}
-```
-
-
----
-
-# Testing Tic-Tac-Toe
-
-Write some common sense tests:
-
-* Make sure marks can be made on the board.
-* Make sure marks can't be written over existing marks
-* Make sure the game detects horizontal, vertical and both diagonal wins
-* Make sure the game detects draw games when the whole board is full without a winner.
-
----
-
-# Tic-Tac-Toe in HTML
-
-Create a basic grid. `<divs>` work fine. Using `<table>` isn't necessary.
-
-It is nice to have a `<div>` to prompt messages like "X's turn" and "Game Over"
-
-JavaScript click listeners come next. Fancy CSS comes last.
-
-```html
-<div id="prompt">X's turn</div>
-
-<div id="tic-tac-toe-grid">
-  <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-  <div>
-  <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-  <div>
-  <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-  <div>
-<div>
-```
-
----
-
-# Tic-Tac-Toe in CSS
-
-```css
-<style>
-  .cell {
-    /* make the cells boxy and give them an outline */
-    border: solid black 1px;
-    width: 200px;
-    height: 200px;
-
-    /* make space between the boxes */
-    margin: 5px;
-
-    /* make the text appear in the exact center of the box */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-</style>
-```
-
----
-
-# Clicking on Squares
-
-Query for all the cells and use the spread operator '...' to convert from
-HTMLElementCollection to an array to gain the `.shift()` function.
-
-Iterate through rows and columns and pluck cells off one at a time to
-attach the click listener.
-
-The click listenenr manipulates the game and updates the page.
-
-```js
-let cells = [...document.getElementsByClassName('cell')];
-
-for (let row = 0; row < 3; row++) {
-  for (let col = 0; col < 3; col++) {
-    const cell = cells.shift();
-    document.attachEventListener('click', () => clickCell(game, cell, row, col));
-  }
-}
-
-function clickCell(game, cell, row, col) {
-  game.makeMove(row, col);
-  cell.textContent = game.board[row][col];
-
-  if (game.isOver) {
-    handleGameOver(game);
-  }
-}
-```
-
----
-
-# Displaying Wins
-
-The click handler always checks to see if the game is over after making any more.
-
-Access the property storing the `winningLine`, find the cells corresponding to
-that line, add a CSS class to highlight the line.
-
-```js
-function handleGameOver(game) {
-  if (!game.isOver) return;
-
-  let [row1, col1, row2, col2, row3, col3] = game.winningLine;
-  let cells = document.getElementsByClassName('cell');
-
-  let cell1 = cells[row1 * 3 + col1];
-  let cell2 = cells[row2 * 3 + col2];
-  let cell3 = cells[row3 * 3 + col3];
-
-  cell1.classList.add('winning');
-  cell2.classList.add('winning');
-  cell3.classList.add('winning');
-
-  const prompt = document.getElementById('prompt');
-  const player = board[row1][col1];
-  prompt.textContent = player + ' won the game!';
-}
-```
-
----
-
-# Reset the Board
-
-Add a `New Game` button that resets the state of the game object and resets
-all the HTML to a starting state.
-
-We'll need to add the `reset()` method to the `TicTacToeGame` class.
-
-```html
-<button id="reset">New Game</button>
-```
-
-```js
-const resetButton = document.getElementById('reset');
-resetButton.addEventListener('click', reset);
-
-function reset() {
-  game.reset();
-
-  const prompt = document.getElementById('prompt');
-  prompt.textContent = "X's turn.";
-
-  let cells = document.getElementsByClassName('cell');
-  for (cell of cells) {
-    cell.textContent = '_';
-  }
-}
-```
-
----
-
-# Reset the Game State
-
-Iterate through all the cells and change them back to `null`
-
-Reset the various `marks`, `isGameOver`, `winningLine` properties.
-
-```js
-reset() {
-  this.isGameOver = false;
-  this.winningLine = null;
-  this.turn = 'X';
-  this.marks = 0;
-
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-      this.board[row][col] = null;
-    }
-  }
-}
-```
-
----
 
 <pre style="text-align: center; font-size: 60pt;">
 X |   | O
@@ -675,6 +794,8 @@ X |   | O
 ==== == ====
   |   | X
 </pre>
+
+by Steve Geluso
 
     </textarea>
     <script src="https://remarkjs.com/downloads/remark-latest.min.js">
