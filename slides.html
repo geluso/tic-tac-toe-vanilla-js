@@ -35,7 +35,33 @@ X |   | O
 
 ---
 
-# Table of Contents
+# Prerequisites
+
+You should have a good grasp on these topics to get the most out of this lesson:
+
+* **Functions:**
+  * Parameters, return values
+* **Arrays:**
+  * Indexing first and last elements with `a[0]` and `a[a.length - 1]`
+  * Plucking items off the front with `.shift()`
+  * Iterating with `for (let i = 0; i < a.length; i++) { item = a[i] }`
+  * Iterating with `for (let item of a) { console.log(item) }`
+  * 2D arrays like `[ ['NW', 'NE'], ['SE', 'SW'] ]`
+  * Iterating over 2D arrays with nested for loops
+* **Classes:**
+  * Defining a class like `class Point() { xx; yy; }`
+  * Instantiating a class like `let p = new Point()`
+  * Class properties and methods.
+* **HTML JavaScript DOM methods:**
+  * `.textContent`
+  * `.classList.add('foo')` and `.classList.remove('foo')`
+  * `let board = document.getElementById('tac-tac-toe-board')`
+  * `let cells = document.getElementsByClassName('cells')`
+* Convert `HTMLCollection` to Array with `[...cells]` to access `.shift()`
+
+---
+
+# Overview
 
 ### Tic-Tac-Toe JavaScript Engine
 ### Detecting Wins
