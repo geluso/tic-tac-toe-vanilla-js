@@ -54,8 +54,9 @@ You should have a good grasp on these topics to get the most out of this lesson:
   * Instantiating a class like `let p = new Point()`
   * Class properties and methods.
 * **HTML JavaScript DOM methods:**
-  * `.textContent`
-  * `.classList.add('foo')` and `.classList.remove('foo')`
+  * Get and set text with `el.textContent`
+  * `el.classList` both `.add('foo')` and `.remove('foo')`
+  * `document.addEventListener('DOMContentLoaded', ()=>{})`;
   * `let board = document.getElementById('tac-tac-toe-board')`
   * `let cells = document.getElementsByClassName('cells')`
 * Convert `HTMLCollection` to Array with `[...cells]` to access `.shift()`
@@ -78,26 +79,27 @@ Create a basic grid. `<divs>` work fine. Using `<table>` isn't necessary.
 
 It is nice to have a `<div>` to prompt messages like "X's turn" and "Game Over"
 
+I like to put underscores `_` in the cells to see where text appears to start.
+
 JavaScript click listeners come next. Fancy CSS comes last.
 
 ```html
 <div id="prompt">X's turn</div>
-
 <div id="tic-tac-toe-grid">
   <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
   <div>
   <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
   <div>
   <div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
+    <div class="cell">_</div>
   <div>
 <div>
 ```
@@ -123,6 +125,27 @@ JavaScript click listeners come next. Fancy CSS comes last.
     justify-content: center;
   }
 </style>
+```
+
+---
+
+# CSS Enhancements
+
+Prevent text highlighting making a CSS rule for `::selection`.
+
+```css
+::selection {
+    background-color: transparent;
+    color: #000;
+}
+```
+
+Turn the mouse cursor into a finger on squares adding this:
+
+```css
+.cell {
+  cursor: pointer;
+}
 ```
 
 ---
@@ -247,6 +270,8 @@ Create a method `isValid()` that will return `true` if a given spot is empty to
 help us prevent an `O` overwriting an `X`.
 
 Add coordinate bounds checking as well.
+
+And make sure the game isn't over!
 
 ```js
 isValid(row, col) {
@@ -573,6 +598,51 @@ reset() {
       this.board[row][col] = null;
     }
   }
+}
+```
+
+---
+
+# Bugs
+
+I found a bug where the player can continue playing even after the game is over.
+
+Update `isValidMove()` to make sure the game is not over!
+
+```js
+isValidMove(row, col) {
+  if (this.isGameOver) {
+    return false;
+  }
+
+  // ...
+}
+```
+
+---
+
+# Bugs
+
+I found a bug where the game would continue playing even after the game was over.
+
+Update the `makeMove()` method to return whether the move was successful or not.
+
+Only update the HTML if the move was successful.
+
+```
+function clickCell(game, cell, row, col) {
+    console.log('clicked on', row, col);
+    const isOK = game.makeMove(row, col);
+    
+    if (!isOK) {
+        return;
+    }
+
+    cell.textContent = game.board[row][col];
+
+    if (game.isGameOver) {
+        console.log('Game Over:', game.winningLine);
+    }
 }
 ```
 
