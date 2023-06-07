@@ -70,8 +70,13 @@ function makeCellId(row, col) {
     return id;
 }
 
+function getCell(row, col) {
+    const id = makeCellId(row, col);
+    const cell = document.getElementById(id);
+    return cell;
+}
+
 function markWin(row, col) {
-    let id = makeCellId(row, col);
-    let cell = document.getElementById(id);
+    let cell = getCell(row, col)
     cell.classList.add('win')
 }

@@ -66,7 +66,7 @@ You should have a good grasp on these topics to get the most out of this lesson:
 # Overview
 
 ### HTML and CSS Tic-Tac-Toe Grid
-### Clicking on Squares with JavaScript Event Listeners
+### Clicking on Cells with JavaScript Event Listeners
 ### Building a Tic-Tac-Toe JavaScript Engine
 ### Connecting HTML to the JavaScript Engine
 ### A Rant About Redundancy
@@ -150,7 +150,7 @@ Turn the mouse cursor into a finger on squares adding this:
 
 ---
 
-# Clicking on Squares
+# Clicking on Cells
 
 Query for all the cells and use the spread operator '...' to convert from
 HTMLElementCollection to an array to gain the `.shift()` function.
@@ -174,6 +174,63 @@ for (let row = 0; row < 3; row++) {
 function clickCell(cell, row, col) {
   console.log('clicked on', row, col);
   cell.textContent = '(', row + ',' + col + ')';
+}
+```
+
+---
+
+# Accessing Arbitrary Cells
+
+The click listeners are bound with the `row` and `col` indexes for each cell.
+
+We need a way to access the cells without a click too.
+
+Make two functions `makeCellId` and `getCell` and attach the id to the cell
+element when the click listener is attached.
+
+```js
+function makeCellId(row, col) {
+  return 'cell-' + row + '-' + col;
+}
+
+function getCell(row, col) {
+  const id = makeCellId(row, col);
+  const cell = document.getElementById(id);
+  return cell;
+}
+```
+
+```js
+for (let row = 0; row < 3; row++) {
+  for (let col = 0; col < 3; col++) {
+    const cell = cells.shift();
+    cell.id = makeCellId(row, col);
+    document.attachEventListener('click', () => clickCell(cell, row, col));
+  }
+}
+```
+
+---
+
+# Accessing Arbitrary Cells (Alternate)
+
+Another way to access individual cells is to come up with a mathematical scheme
+taking `row` and `col` numbers and converting it into an array index.
+
+Use the formula `index = 3 * row + col`
+
+The top left cell is at `0,0` so 3*0 + 0 = 0, the first element in the array.
+
+The center cell is at `1,1` so = 3*1 + 1 = 4, the middle of the array.
+
+The bottom right cell is at `2,2` so = 3*2 + 2 = 8, the last element in the array.
+
+```js
+function getCell(row, col) {
+  const index = 3 * row + col;
+  const cells = document.getElementsByClassName('cell');
+  const cell = cells[index];
+  return cell;
 }
 ```
 
@@ -461,9 +518,9 @@ function handleGameOver(game) {
   let [row1, col1, row2, col2, row3, col3] = game.winningLine;
   let cells = document.getElementsByClassName('cell');
 
-  let cell1 = cells[row1 * 3 + col1];
-  let cell2 = cells[row2 * 3 + col2];
-  let cell3 = cells[row3 * 3 + col3];
+  let cell1 = getCell(row1 * 3, col1);
+  let cell2 = getCell(row2 * 3, col2);
+  let cell3 = getCell(row3 * 3, col3);
 
   cell1.classList.add('winning');
   cell2.classList.add('winning');
@@ -474,6 +531,29 @@ function handleGameOver(game) {
   prompt.textContent = player + ' won the game!';
 }
 ```
+
+---
+
+# Displaying Wins (Reduce Redundancy)
+
+Eliminate some redundancy by creating a function `markWin` 
+
+```js
+function handleGameOver(game) {
+  let [row1, col1, row2, col2, row3, col3] = game.winningLine;
+  let cells = document.getElementsByClassName('cell');
+
+  markWin(row1, col1);
+  markWin(row2, col2);
+  markWin(row3, col3);
+}
+
+function markWin(row, col) {
+  let cell = getCell(row, col);
+  cell.classList.add('winning');
+}
+```
+
 
 
 ---
